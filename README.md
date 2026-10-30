@@ -130,6 +130,8 @@ python3 ../scripts/merge_coverage.py ../reports/pcie_axil_master_fixed_w64
 rtl/pcie_axil_master.v          DUT, unmodified from verilog-pcie @ 25156a9 (MIT)
 rtl/pcie_axil_master_fixed.v    DUT with both fixes
 docs/fixes.patch                diff of the fixes
+docs/upstream_issues.md         draft bug reports for verilog-pcie / taxi
+.github/workflows/regression.yml  CI regression (3 TLP widths)
 tb/pcie_uvm_env.py              pyuvm environment (items, sequences, driver,
                                 monitor/checker, scoreboard, coverage)
 tb/test_pcie_axil_uvm.py        harness + tests
@@ -137,9 +139,17 @@ tb/pcie_if.py                   TLP interface model from verilog-pcie (MIT)
 scripts/merge_coverage.py       merges per-test coverage
 ```
 
+## Continuous integration
+
+`.github/workflows/regression.yml` runs the full regression on the fixed RTL
+for 64/128/256-bit TLP widths on every push and prints merged coverage.
+
+## Upstream reports
+
+Draft issue reports with reproduction commands: `docs/upstream_issues.md`.
+
 ## Next steps
 
 * Port the environment to SystemVerilog UVM (Cadence Xcelium) with
   SV covergroups and SVA protocol assertions on the TLP interface
 * Formal proof of the completion-length/strobe property with JasperGold
-* Report both issues upstream

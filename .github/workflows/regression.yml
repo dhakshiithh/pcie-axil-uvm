@@ -1,0 +1,28 @@
+name: regression
+
+on: [push, pull_request]
+
+jobs:
+  sim:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        width: [64, 128, 256]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install tools
+        run: |
+          sudo apt-get update && sudo apt-get install -y iverilog
+          pip install cocotb==1.9.2 pyuvm==3.0.0 cocotbext-pcie cocotbext-axi cocotb-bus
+      - name: Regression (fixed RTL)
+        working-directory: tb
+        run: make RTL=pcie_axil_master_fixed TLP_DATA_WIDTH=${{ matrix.width }}
+      - name: Check results
+        working-directory: tb
+        run: "! grep -q 'failure' results.xml"
+      - name: Merged coverage
+        run: python3 scripts/merge_coverage.py reports/pcie_axil_master_fixed_w${{ matrix.width }}
