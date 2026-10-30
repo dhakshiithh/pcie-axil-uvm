@@ -1,0 +1,11 @@
+--- rtl/pcie_axil_master.v	2026-10-30 20:53:17.969716285 +0000
++++ rtl/pcie_axil_master_fixed.v	2026-10-30 20:56:45.295488899 +0000
+@@ -547,7 +547,7 @@
+                     end
+                 end else begin
+                     // other request
+-                    if (rx_req_tlp_hdr_fmt[0] && rx_req_tlp_hdr_type & 5'b11000 == 5'b10000) begin
++                    if (rx_req_tlp_hdr_fmt[0] && (rx_req_tlp_hdr_type & 5'b11000) == 5'b10000) begin
+                         // message - posted, no completion
+                         // report uncorrectable error
+                         status_error_uncor_next = 1'b1;

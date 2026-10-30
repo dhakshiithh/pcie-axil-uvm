@@ -1,0 +1,53 @@
+--- rtl/pcie_axil_master.v	2026-10-30 20:53:17.969716285 +0000
++++ rtl/pcie_axil_master_fixed.v	2026-10-30 21:00:38.595711300 +0000
+@@ -475,7 +475,7 @@
+                     resp_fifo_wr_op_read = 1'b1;
+                     resp_fifo_wr_op_write = 1'b0;
+                     resp_fifo_wr_first = 1'b1;
+-                    resp_fifo_wr_last = req_op_dword_count_next == 11'd1;
++                    resp_fifo_wr_last = req_op_dword_count_next == 11'd1 || req_dword_count_next == 1;
+                     resp_fifo_wr_cpl_status = CPL_STATUS_SC;
+                     resp_fifo_wr_dword_count = req_dword_count_next;
+                     resp_fifo_wr_byte_count = req_byte_count_next;
+@@ -503,7 +503,12 @@
+                         end
+                     end else begin
+                         rx_req_tlp_ready_next = 1'b0;
+-                        req_state_next = REQ_STATE_READ_2;
++                        if (req_dword_count_next == 0) begin
++                            // single-DW RCB chunk already complete, start next completion
++                            req_state_next = REQ_STATE_READ_1;
++                        end else begin
++                            req_state_next = REQ_STATE_READ_2;
++                        end
+                     end
+                 end else if (rx_req_tlp_hdr_fmt[1] && rx_req_tlp_hdr_type == 5'b00000) begin
+                     // write request
+@@ -547,7 +552,7 @@
+                     end
+                 end else begin
+                     // other request
+-                    if (rx_req_tlp_hdr_fmt[0] && rx_req_tlp_hdr_type & 5'b11000 == 5'b10000) begin
++                    if (rx_req_tlp_hdr_fmt[0] && (rx_req_tlp_hdr_type & 5'b11000) == 5'b10000) begin
+                         // message - posted, no completion
+                         // report uncorrectable error
+                         status_error_uncor_next = 1'b1;
+@@ -610,7 +615,7 @@
+                 resp_fifo_wr_op_read = 1'b1;
+                 resp_fifo_wr_op_write = 1'b0;
+                 resp_fifo_wr_first = 1'b1;
+-                resp_fifo_wr_last = req_op_dword_count_reg == 1;
++                resp_fifo_wr_last = req_op_dword_count_reg == 1 || req_dword_count_next == 1;
+                 resp_fifo_wr_cpl_status = CPL_STATUS_SC;
+                 resp_fifo_wr_dword_count = req_dword_count_next;
+                 resp_fifo_wr_byte_count = req_byte_count_reg;
+@@ -631,6 +636,9 @@
+                 rx_req_tlp_ready_next = 1'b0;
+                 if (req_op_dword_count_reg == 1) begin
+                     req_state_next = REQ_STATE_IDLE;
++                end else if (req_dword_count_next == 0) begin
++                    // single-DW RCB chunk already complete, start next completion
++                    req_state_next = REQ_STATE_READ_1;
+                 end else begin
+                     req_state_next = REQ_STATE_READ_2;
+                 end
